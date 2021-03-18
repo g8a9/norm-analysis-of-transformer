@@ -311,15 +311,11 @@ class BertNormOutput(nn.Module): # This class is added by Goro Kobayashi
         # dense: nn.Linear(all_head_size, all_head_size)
 
         # with torch.no_grad():
-        # import pdb
-        # pdb.set_trace()
 
         # value_layer is converted to (batch, seq_length, num_heads, 1, head_size)
-        # value_layer = value_layer.permute(0, 2, 1, 3).contiguous()
-        # value_shape = value_layer.size()
-        # value_layer = value_layer.view(value_shape[:-1] + (1, value_shape[-1],))
-        ### PROPOSED EDITS to previous lines ###
-        value_layer = value_layer.transpose(1, 2).unsqueeze(3)
+        value_layer = value_layer.permute(0, 2, 1, 3).contiguous()
+        value_shape = value_layer.size()
+        value_layer = value_layer.view(value_shape[:-1] + (1, value_shape[-1],))
 
         # dense weight is converted to (num_heads, head_size, all_head_size)
         dense = dense.weight
@@ -328,11 +324,11 @@ class BertNormOutput(nn.Module): # This class is added by Goro Kobayashi
 
         # Make transformed vectors f(x) from Value vectors (value_layer) and weight matrix (dense).
         transformed_layer = value_layer.matmul(dense)
-        # transformed_shape = transformed_layer.size() #(batch, seq_length, num_heads, 1, all_head_size)
-        # transformed_layer = transformed_layer.view(transformed_shape[:-2] + (transformed_shape[-1],))
-        # transformed_layer = transformed_layer.permute(0, 2, 1, 3).contiguous()
+        transformed_shape = transformed_layer.size() #(batch, seq_length, num_heads, 1, all_head_size)
+        transformed_layer = transformed_layer.view(transformed_shape[:-2] + (transformed_shape[-1],))
+        transformed_layer = transformed_layer.permute(0, 2, 1, 3).contiguous()
         ### PROPOSED EDITS to previous lines ###
-        transformed_layer = transformed_layer.transpose(1, 2).squeeze(3) # BSHAh
+        # transformed_layer = transformed_layer.transpose(1, 2).squeeze(3) # BSHAh
 
         ### DISABLE needless computation ### 
         # transformed_shape = transformed_layer.size() #(batch, num_heads, seq_length, all_head_size)
